@@ -50,10 +50,52 @@ Para ensayos externos, el enfoque sera local-first: el servidor de la plataforma
 - Como se revierte una confirmacion incorrecta sin perder trazabilidad?
 - Como manejar imagenes muy pesadas dentro del JSON?
 
+## Modos de procesamiento por evaluar
+
+El flujo puede variar según dónde se ejecute y si el usuario entrega un
+solucionario. Esta matriz es una propuesta para la skill; todavía no describe
+funcionalidad implementada en la web.
+
+| Entorno | Solucionario | Flujo propuesto |
+| --- | --- | --- |
+| Chat | Sí | Importación directa con el solucionario como fuente de respuestas. |
+| CLI | Sí | Importación directa o flujo avanzado, según la capacidad del CLI para leer el PDF y sus visuales. |
+| CLI | No | Procesamiento completo; puede requerir agentes para repartir extracción y resolución. |
+| Chat | No | Experimental; primero hay que comprobar lectura del PDF, visuales y contexto disponible. |
+
+La presencia de un solucionario no demuestra por sí sola que corresponda al
+ensayo ni que sus respuestas sean correctas. Se debe registrar su fuente y
+mantener visibles las respuestas pendientes de comprobación.
+
+## Comparación experimental local
+
+En el laboratorio Test2 se prepararon dos variantes AGY para comparar un mismo
+PDF mediante observación manual:
+
+- **V1:** producción inicial desde el PDF con la skill PDF-directo, seguida por
+  una auditoría independiente por lotes y aprobación explícita de correcciones.
+- **V2:** localización de preguntas y generación directa desde fragmentos del
+  PDF por agentes independientes, sin usar el resultado semántico de V1.
+
+Son experimentos locales de importación y no una implementación del Verificador
+web ni una medición de precisión oficial. Tiempo, contexto, uso, comportamiento
+de agentes y calidad se comparan manualmente. Cada variante usa la misma fuente
+PDF, pero conserva sus propios artefactos y estados de respuesta.
+
+## Respaldo y publicación
+
+El laboratorio y sus corridas permanecen en `Test2/Final`. No se deben agregar
+al repositorio público los PDFs de ensayo ni los resultados, imágenes o demás
+artefactos derivados. Esto sigue la [política de datos y contenido](../../docs/DATA_AND_CONTENT_POLICY.md).
+Si se necesita respaldo de las Skills, considerar un repositorio privado
+separado y excluir los PDFs y outputs; revisar licencias y contenido antes de
+publicar cualquier dependencia.
+
 ## Pendientes
 
-- [ ] Definir visualizacion de grilla.
+- [ ] Definir visualización de grilla.
 - [ ] Definir vista por pregunta.
-- [ ] Definir importacion de contenido verificado (`final.json`).
-- [ ] Definir relacion con estadisticas.
-- [ ] Definir limites de privacidad y almacenamiento.
+- [ ] Definir importación de contenido verificado (`final.json`).
+- [ ] Definir relación con estadísticas.
+- [ ] Definir límites de privacidad y almacenamiento.
+- [ ] Evaluar la matriz de modos con ensayos y solucionarios autorizados.
