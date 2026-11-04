@@ -153,9 +153,36 @@ El diagnóstico inicial sirve para orientar, **no para declarar dominio definiti
 - No confundir un cambio de ruta con la pérdida de progreso.
 - Pendiente: cuántos nodos futuros se deben mostrar y qué animación explica un cambio de posición sin desconcertar al estudiante.
 
-### Al terminar cada nodo
+### Al terminar cada nodo: corrección de errores
 
-Mostrar correctas/incorrectas, explicaciones disponibles, progreso diario y siguiente nodo recomendado. Dar feedback útil sin presentar una puntuación PAES estimada a partir de solo cinco preguntas.
+**Comportamiento acordado para el diseño:**
+
+1. El estudiante responde las **cinco preguntas** del nodo en una primera ronda.
+2. Se guardan los resultados originales de cada pregunta (correcta, incorrecta u omitida, según las reglas de evaluación que se definan). **Solo esta primera ronda aporta evidencia de aciertos/errores al algoritmo adaptativo.**
+3. Si no hubo errores, se pasa directamente a «Nodo completado».
+4. Si hubo errores, aparece un resumen de la primera ronda y una acción clara: **«Corregir mis errores»**.
+5. Se vuelven a mostrar únicamente las preguntas falladas para que el estudiante las responda correctamente, con acceso a una explicación o ayuda pedagógica.
+6. Cuando las preguntas pendientes estén corregidas, se muestra **«Nodo completado»**, el progreso diario y el siguiente nodo recomendado.
+
+**Ejemplo:** cinco preguntas, tres correctas y dos incorrectas en el primer intento. La evaluación queda en **3/5 (60 %)**. Si el estudiante corrige después las otras dos, el nodo se marca como completado y se muestra «2 errores corregidos», **sin reemplazar 3/5 por 5/5 en las estadísticas de dominio**.
+
+#### Separación de datos y reglas
+
+- Conservar el **primer intento** de forma inmutable para el cálculo del perfil; no convertir un acierto en el reintento en un acierto original.
+- Registrar por separado los reintentos y el estado educativo de corrección/completitud.
+- Los reintentos **no cuentan como preguntas nuevas** para la adaptación, cobertura, porcentaje de aciertos ni XP repetible.
+- Mantener las respuestas y el progreso de corrección si el estudiante sale o recarga la página.
+- Evitar bloqueos indefinidos: queda pendiente definir cuántos intentos fallidos habilitan una resolución guiada o la explicación completa y cómo se da por revisada la pregunta sin simular que fue correcta.
+- No estimar puntaje PAES a partir de solo cinco preguntas.
+
+#### Pruebas de aceptación específicas
+
+- [ ] Cinco aciertos originales: completar sin ronda de corrección.
+- [ ] Tres aciertos y dos errores: corregir solo esas dos; conservar 3/5 en dominio.
+- [ ] Fallar nuevamente una pregunta: permitir revisión sin sobrescribir el primer intento.
+- [ ] Cerrar y reabrir en plena corrección: reanudar sin duplicar resultados.
+- [ ] Completar la corrección: habilitar el siguiente nodo una sola vez y sin duplicar XP.
+- [ ] Verificar que los reintentos no alteren la selección adaptativa del siguiente nodo.
 
 ## 7. Pruebas de simulación requeridas antes de integrar
 
