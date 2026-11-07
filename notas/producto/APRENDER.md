@@ -5,7 +5,7 @@ tags:
   - producto
   - aprender
   - ui-ux
-actualizado: 2026-11-04
+actualizado: 2026-11-07
 estado: diseño en definición
 ---
 
@@ -36,13 +36,13 @@ Crear una ruta de práctica de Matemática M1 inspirada visualmente en Duolingo.
 | Tamaño | **5 preguntas por nodo**. |
 | Banco | Banco central *Default* de ensayos DEMRE, con preguntas clasificadas y aptas para uso en Aprender. |
 | Clasificación | **4 ejes y 16 subejes M1**, usando `eje` y `subeje` del contrato `.paessed` 0.2.0. |
-| Personalización | Más presencia de subejes débiles, con mantenimiento de los otros ejes. |
+| Personalización | **Mantenimiento:** rotación equitativa entre los cuatro ejes. **Refuerzo:** rotación dinámica entre uno o varios ejes y subejes de menor dominio. |
 | Proporción semanal | **4 nodos de mantenimiento por cada 3 de refuerzo**, intercalados. |
 | Ubicación de refuerzos | Posiciones con aleatoriedad controlada; cuotas exactas y ruta guardada. |
 | Dominio | Respuestas originales válidas, procedentes de Aprender, Playground y Ensayos; ponderación por nuevas respuestas del mismo subeje, no por días. |
 | Calibración | **15 respuestas válidas por eje** para dejar el estado gris provisional; sin cobertura forzosa de cada subeje. |
-| Repaso | HLR como propuesta separada, pendiente de validar para matemáticas. |
-| Frecuencia | Nodos futuros recalculables conforme se completa práctica. |
+| HLR | **Fuera del MVP.** Se conserva solo como referencia histórica/posible investigación futura; no participa en mantenimiento, refuerzo ni dominio. |
+| Frecuencia | Recalcular los grupos de refuerzo tras nuevas respuestas válidas y actualizar **solo los nodos futuros**; guardar el cursor de rotación y conservar el progreso. |
 | Gamificación | Racha, XP y progreso visual pueden motivar; **XP no equivale a dominio matemático**. |
 | Exclusiones | No usar los campos `habilidad` ni `dificultad`: no forman parte del contrato vigente 0.2.0. |
 | Ranking | Separado de Aprender. No condiciona su primer MVP. |
@@ -59,57 +59,86 @@ La meta es un **objetivo**, no un límite: falta decidir si se ofrece práctica 
 
 **Cambio respecto a una idea anterior:** ya no se propone una cuota fija universal de 16 preguntas diarias. Se adopta esta escala de 5/10/15 según la elección del estudiante, pendiente de validación en el piloto.
 
-## 3. Planificador semanal: proporción 4:3
+## 3. Planificación semanal y selección adaptativa
 
-**Dirección conversada:** por cada **7 nodos**, programar **4 de mantenimiento (M)** y **3 de refuerzo (R)**. Mantener la proporción para las tres preferencias de dedicación y **mezclar ambos tipos durante la semana**, sin reservar días completos a uno solo.
+### 3.1. Cuántos nodos y dónde aparecen
 
-| Preferencia | Total en siete días completos | Mantenimiento | Refuerzo |
+**Decisión:** por cada **7 nodos**, programar **4 de mantenimiento (M)** y **3 de refuerzo (R)**. Ambos se intercalan a lo largo de la semana, en vez de reservar días exclusivos para cada tipo.
+
+| Preferencia | Nodos en siete días completos | Mantenimiento | Refuerzo |
 | --- | ---: | ---: | ---: |
 | Poco tiempo (1/día) | 7 | 4 | 3 |
 | Normal (2/día) | 14 | 8 | 6 |
 | Más tiempo (3/día) | 21 | 12 | 9 |
 
-- **Mantenimiento:** rotación equilibrada de los cuatro ejes; dentro del eje elegir un subeje adecuado sin imponer desbloqueos.
-- **Refuerzo:** seleccionar los subejes que necesitan más práctica mediante los resultados recientes, errores y repasos pendientes. La fórmula exacta de prioridad aún no está aprobada.
-- **Posiciones:** **aleatoriedad controlada** para intercalar M y R; **las cantidades totales no quedan al azar**.
-- **Ruta estable:** guardar la distribución generada para que recargar no cambie los nodos ya visibles. Los completados nunca se reescriben.
-- **Adaptación:** al terminar cada nodo se pueden reajustar los subejes de los nodos futuros, manteniendo las cuotas pendientes y el historial.
+- **Azar controlado solo para la posición de M/R.** Generar y guardar un calendario con las cuotas exactas; no sortear los ejes ni subejes de refuerzo.
+- En 3 nodos diarios: **cinco días con 2 M + 1 R** y **dos días con 1 M + 2 R**, con orden variable. En 2/día: seis días con 1 M + 1 R y uno con 2 M. En 1/día: cuatro jornadas M y tres R.
+- La ruta generada debe ser **estable y reproducible**; no reorganizar lo ya completado, ni cambiar nodos únicamente por recargar la página.
+- Son metas programadas, no resultados obtenidos. Si el estudiante omite días, no contar como completados sus nodos. La replanificación de días omitidos, cambios de dedicación y práctica extra sigue pendiente.
 
-### Ejemplo de dispersión controlada
+### 3.2. Nodos de mantenimiento: cobertura equitativa
 
-En la modalidad de 3 nodos por día, para alcanzar **9 R y 12 M** en siete jornadas sin hacer días exclusivos:
+**Decisión:** distribuir los nodos M **equitativamente entre los cuatro ejes**, sin priorizar por dominio ni por HLR.
 
-- Cinco días: **M, M y R** en algún orden.
-- Dos días: **M, R y R** en algún orden.
-- Elegir de forma reproducible qué dos días llevan dos refuerzos y mezclar las posiciones dentro del día.
-
-Para 2 nodos diarios, seis días llevarían un M y un R, y uno llevaría dos M. Para 1 nodo diario, habría cuatro jornadas M y tres R, con las posiciones intercaladas.
-
-Estas son **metas programadas, no resultados realizados**: si el estudiante omite días, no marcar nodos como completados. Queda por diseñar cómo replanificar sesiones perdidas, cambios de dedicación y práctica extra.
-
-### Evitar monotonía y falta de cobertura
-
-- Los cuatro ejes deben aparecer en mantenimiento; con 3 nodos diarios, los 12 M pueden repartirse en **3 por eje**.
-- En refuerzo debe haber prioridad de debilidades, pero no repetir innecesariamente el mismo subeje en nodos consecutivos.
-- El algoritmo trabaja **por subeje** (16), aunque los nodos muestren también su eje.
-- Una posición R **no significa elegir un eje por sorteo ponderado**. Esa idea se descartó por poder producir semanas injustamente concentradas.
-- La garantía de cuatro ejes no obliga a cubrir los 16 subejes todas las semanas; estos necesitan seguimiento gradual.
-
-### Ejemplo ilustrativo de distribución por eje
-
-Para un estudiante con Geometría y Probabilidad débiles que complete 14 nodos:
-
-| Eje | Nodos de ejemplo |
+| Dedicación | Nodos M por eje y semana completa |
 | --- | ---: |
-| Geometría | 6 |
-| Probabilidad y Estadística | 4 |
-| Álgebra y Funciones | 2 |
-| Números | 2 |
-| **Total** | **14** |
+| 1 nodo/día | 1 |
+| 2 nodos/día | 2 |
+| 3 nodos/día | 3 |
 
-No son porcentajes obligatorios: el reparto final depende de los subejes, la evidencia y el contenido disponible.
+- Rotar por los cuatro ejes con un cursor persistido y completar la cuota de cada eje.
+- **Propuesta para los subejes del eje asignado:** rotación equitativa de los subejes con preguntas elegibles, manteniendo progreso entre semanas. El orden concreto y la política de escasez de preguntas aún deben probarse.
+- Esto garantiza la cobertura de **ejes** cuando se completa la planificación; no promete cubrir todos los subejes en una sola semana, ni compensa automáticamente los días omitidos.
 
-## 4. Calibración, dominio y HLR
+### 3.3. Nodos de refuerzo: selección de ejes por dominio
+
+**Dirección acordada:** el refuerzo **no se sortea** ni se asigna por HLR. Se basa en el dominio de los ejes y subejes, dando espacio a varias debilidades mediante **rotación**.
+
+Propuesta de selección, **pendiente de simulación y ajuste de umbrales**:
+
+1. Ordenar los cuatro ejes **de menor a mayor dominio**.
+2. Si entre el peor y el segundo hay **30 puntos porcentuales o más de diferencia**, proponer **solo el eje más débil**.
+3. En caso contrario, partir de **los dos ejes más débiles**.
+4. Incorporar el tercero y el cuarto si sus dominios están a **10 puntos porcentuales o menos del eje más débil**. Así podrían rotar **1, 2, 3 o 4 ejes**, según lo parecidos que sean sus resultados.
+5. Rotar los ejes elegidos, **empezando por el más débil**, sin repetir eje consecutivo mientras haya otros seleccionados. **Si solo hay uno claramente débil, es correcto repetir ese eje en nodos R.**
+
+Estos valores de **10 y 30 puntos son hipótesis de diseño**, no parámetros aprobados científicamente. No se debe tratar una diferencia pequeña o datos en calibración como prueba definitiva de que un eje es peor.
+
+| Ejemplo de dominios por eje (orden ascendente) | Resultado inicial propuesto |
+| --- | --- |
+| 38 %, 64 %, 88 %, 92 % | **2 ejes:** 38 % y 64 %; alternar ambos. |
+| 38 %, 85 %, 88 %, 92 % | **1 eje:** 38 %; concentrar allí los refuerzos. |
+| 40 %, 42 %, 48 %, 90 % | **3 ejes:** 40 %, 42 % y 48 %; rotarlos. |
+| 40 %, 42 %, 48 %, 49 % | **4 ejes:** valores próximos; rotar todos. |
+
+**Ejemplo ilustrativo** con 14 nodos por semana y ejes débiles Geometría y Probabilidad:
+
+| Eje | Mantenimiento | Refuerzo | Total |
+| --- | ---: | ---: | ---: |
+| Geometría | 2 | 3 | 5 |
+| Probabilidad y Estadística | 2 | 3 | 5 |
+| Álgebra y Funciones | 2 | 0 | 2 |
+| Números | 2 | 0 | 2 |
+| **Total** | **8** | **6** | **14** |
+
+Se trata de una **rotación equitativa dentro del grupo de refuerzo elegido**, no de una cuota por eje que dependa directamente de la magnitud del déficit.
+
+### 3.4. Dentro del eje de refuerzo: elegir el subeje
+
+- Aplicar la **misma idea de selección y rotación por menor dominio** entre los subejes del eje seleccionado, usando solo aquellos con preguntas válidas.
+- Probar umbrales de proximidad antes de fijarlos: los ejes tienen distinta cantidad de subejes y la evidencia por subeje puede ser escasa.
+- La rotación impide que el algoritmo elija **siempre** el mismo subeje cuando existen varios débiles. **No prohíbe repetirlo** si es el único que necesita refuerzo.
+- **HLR no interviene**. Si algunos subejes todavía no tienen evidencia suficiente, hace falta una regla de exploración/calibración que no interprete «sin datos» como 0 % de dominio.
+
+### 3.5. Recalcular sin perder progreso
+
+- Cuando entran nuevas respuestas **originales válidas**, actualizar el dominio y **revaluar el grupo de ejes y subejes elegibles para refuerzo**.
+- Los nodos **ya completados y sus primeros intentos son inmutables**. La selección nueva afecta solo a los **nodos futuros aún no iniciados**.
+- Guardar cursor, posición y versión de planificación para evitar cambios arbitrarios al recargar.
+- Si un eje mejora claramente (por ejemplo, Geometría pasa de 38 % a 75 %), el sistema puede dejar de incluirlo en refuerzo y sustituirlo por otro eje que ahora sea más débil.
+- La frecuencia de recálculo, cómo tratar empates y cuándo congelar un nodo «próximo» son decisiones de implementación que requieren pruebas.
+
+## 4. Calibración y dominio (sin HLR en el MVP)
 
 ### Período de calibración del dominio
 
@@ -131,7 +160,7 @@ Unificar los intentos elegibles de **Aprender, Playground y Ensayos**. El sistem
 
 ### Cálculo propuesto: ponderación por nuevas respuestas, NO por días
 
-**Cambio importante respecto de ideas anteriores:** no reducir automáticamente el dominio por no entrar a la web ni por dejar un eje sin practicar. Los días transcurridos deben influir en el **repaso HLR**, no castigar porcentajes de dominio.
+**Cambio importante respecto de ideas anteriores:** no reducir automáticamente el dominio por no entrar a la web ni por dejar un eje sin practicar. El paso de los días, por sí solo, **no modifica el dominio**.
 
 Propuesta de peso de cada respuesta válida de un subeje:
 
@@ -156,34 +185,31 @@ D_s = 100 * (Σ_i w_i a_i) / (Σ_i w_i)
 - **Curva por antigüedad calendario de 30 días**, `w(d) = max(0,1-d/30)^1.5`: se exploró, pero se identificó que podría penalizar injustamente a quien no estudia un día o a un eje que tarda en reaparecer. **No aplicarla al dominio.**
 - **Resetear todas las estadísticas cada siete días:** solo se renueva la planificación y los indicadores semanales, **no el historial ni el dominio acumulado**.
 
-### HLR: repaso espaciado separado del dominio
+### HLR: referencia descartada del MVP, no una dependencia
 
-La fórmula de referencia publicada por Duolingo para la probabilidad de recordar un contenido es:
+HLR (*Half-Life Regression*) es un modelo de repaso espaciado que estima la probabilidad de recordar, según tiempo y semivida de memoria:
 
 ~~~math
 P(recordar) = 2^(-t/h)
 ~~~
 
-- `t` = tiempo desde el último repaso.
-- `h` = semivida de memoria estimada con el historial.
-- HLR ayuda a decidir **cuándo sería conveniente repasar**, incluso si el dominio histórico es alto.
-- Una alerta de HLR **no disminuye automáticamente el dominio**. Solo una nueva respuesta elegible puede modificarlo.
-- Ejemplo: Porcentajes conserva 85 % de dominio, pero lleva tiempo sin practicar; el planificador puede incluir un repaso. El dominio cambia únicamente según el resultado posterior.
+En el diseño inicial de Aprender **no lo necesitamos**: mantenimiento ya cubre equitativamente los cuatro ejes, y refuerzo prioriza el menor dominio. Por eso:
 
-**Precaución:** HLR fue desarrollado sobre aprendizaje de palabras/conceptos lingüísticos y requiere parámetros estimados con datos. No está validado automáticamente para ejercicios matemáticos por subeje ni tenemos todavía un modelo entrenado para PAESSED. Por ahora es una **referencia de diseño experimental**, no un componente implementado ni una probabilidad fiable de resolver preguntas M1.
+- **No usar HLR** para decidir qué M o R aparece, elegir ejes/subejes, ni alterar el dominio.
+- **No introducir una ponderación dominio/HLR (p. ej., 70/30)**: fue una propuesta conversada y se descartó por duplicar responsabilidades.
+- Conservar HLR **solo como referencia histórica o investigación futura** si las pruebas evidencian que la rotación de mantenimiento resulta insuficiente. Sus parámetros no están calibrados para M1.
+- Referencia: [Duolingo — Half-Life Regression](https://research.duolingo.com/papers/settles.acl16.pdf).
 
-Referencia técnica: [Duolingo — Half-Life Regression](https://research.duolingo.com/papers/settles.acl16.pdf).
+### Separación de responsabilidades vigente
 
-### Separación de responsabilidades
+| Componente | Qué hace |
+| --- | --- |
+| **Planificador 4:3** | Define cuotas semanales y posiciones intercaladas M/R; solo estas posiciones tienen azar controlado. |
+| **Mantenimiento** | Rota equitativamente los cuatro ejes y, como propuesta, los subejes del eje correspondiente. |
+| **Estimador de dominio** | Calcula resultados ponderados por nuevas respuestas válidas, sin penalizar inactividad. |
+| **Refuerzo** | Selecciona los ejes y subejes más débiles y rota dinámicamente entre los elegidos, con umbrales aún provisionales. |
 
-| Componente | Qué decide | Qué no debe hacer |
-| --- | --- | --- |
-| **Planificador 4:3** | Posiciones de mantenimiento/refuerzo y metas semanales. | Cambiar el dominio sin respuestas. |
-| **Estimador de dominio** | Porcentaje observado ponderado por nuevas respuestas del subeje. | Penalizar solo por paso de días. |
-| **HLR / programación de repasos** | Cuándo conviene volver a practicar un conocimiento. | Reemplazar resultados originales o declarar dominio verdadero. |
-| **Selector de subejes** | Qué contenido entra en cada M o R según las señales disponibles. | Elegir siempre el peor o depender solo de sorteos. |
-
-Todos estos sistemas deben ser verificables con simulaciones y explicables en la interfaz.
+**No se trata de cuatro algoritmos probabilísticos.** La selección del contenido es determinista, sujeta a cambios cuando llegan nuevas respuestas y a reglas que faltan validar.
 
 ## 5. Banco central y selección de preguntas
 
@@ -204,15 +230,15 @@ Todos estos sistemas deben ser verificables con simulaciones y explicables en la
 - Mostrar por eje «En calibración» en gris y progreso de respuestas originales, por ejemplo «8/15», hasta alcanzar la evidencia mínima.
 - Ruta de nodos grandes, claros y táctiles, con conexión visual estilo Duolingo **sin copiar literalmente su diseño**.
 - Cada nodo muestra **eje, subeje y cinco preguntas**; el estado puede ser completado, disponible o futuro.
-- Señalar «Refuerzo» o «Repaso» cuando corresponda, pero sin tratarlo como una dificultad de la pregunta.
-- Mostrar progreso real por ejes y una explicación corta de por qué se recomienda el nodo (p. ej., «Semejanza: errores recientes»).
+- Señalar «Refuerzo» o «Mantenimiento» según corresponda, sin tratarlo como una dificultad de la pregunta.
+- Mostrar progreso por ejes y explicar brevemente la selección (p. ej., «Mantenimiento: turno de Geometría» o «Refuerzo: subeje de menor dominio»).
 - Mantener la identidad visual de PAESSED y reutilizar el visor de preguntas a pantalla completa de Ensayos/Playground cuando sea viable.
 - Preparar escritorio, móvil, teclado, accesibilidad y movimiento reducido.
 
 ### Ruta dinámica
 
 - Los nodos **completados** permanecen en el historial.
-- Los nodos **futuros** son previsiones, susceptibles de reordenarse.
+- Los nodos **futuros no iniciados** son previsiones y pueden cambiar de eje/subeje cuando se recalcula el dominio; los completados no se reescriben.
 - No confundir un cambio de ruta con la pérdida de progreso.
 - Pendiente: cuántos nodos futuros se deben mostrar y qué animación explica un cambio de posición sin desconcertar al estudiante.
 
@@ -264,15 +290,18 @@ Todos estos sistemas deben ser verificables con simulaciones y explicables en la
 - [ ] Unificar primeras respuestas de Aprender, Playground y Ensayos sin duplicar preguntas ya vistas ni correcciones.
 - [ ] Comprobar que pasar días sin estudiar un eje **no cambia su dominio**.
 - [ ] Validar numéricamente `w_i = 0.95^(k_i/5)` y medir sensibilidad a diferentes parámetros.
-- [ ] Evaluar HLR separadamente como recordatorio de repaso, sin alterar automáticamente el dominio.
+- [ ] Comprobar rotación equitativa de 4 ejes en M: 1, 2 o 3 nodos por eje según dedicación.
+- [ ] Comprobar elección de 1, 2, 3 o 4 ejes R con dominios muy diferentes o próximos y umbrales de 10/30 puntos.
+- [ ] Validar rotación de subejes, comportamiento con un único eje débil, empates y cambio de grupo al mejorar el dominio.
+- [ ] Verificar que HLR y la ponderación 70/30 **no participan** en el MVP.
 
 ## 8. Dudas y decisiones por cerrar
 
 1. **Diagnóstico inicial:** reconciliar las variantes de 12 y 16 preguntas sin confundirlas con la calibración de 15 respuestas por eje.
 2. **Calibración:** decidir si 15 respuestas por eje es un umbral suficiente y cómo mostrar resultados poco representativos sin exigir todos los subejes.
 3. **Dominio:** validar el factor `0.95` por cada cinco respuestas nuevas; definir agregación de porcentajes por subeje al eje.
-4. **Selección de refuerzos:** definir la prioridad que combine debilidad medida, errores recientes y revisión pendiente, evitando monotonía.
-5. **HLR:** decidir si se utiliza en el MVP, con qué parámetros iniciales y cómo se valida para matemática M1; por ahora es propuesta experimental.
+4. **Selección de refuerzos:** validar los umbrales provisionales de 10 y 30 puntos y cómo agrupar ejes/subejes con evidencia insuficiente; decidir empates y recálculo de nodos no iniciados.
+5. **Subejes de mantenimiento:** confirmar la rotación equitativa propuesta dentro de cada eje y qué hacer cuando se agotan sus preguntas disponibles. **HLR queda fuera del MVP**.
 6. **Intercalado 4:3:** reglas para omisiones, nodos extra, cambios de meta, calendario y replanificación sin alterar lo completado.
 7. **Ruta visible:** cuántos nodos futuros se muestran y cómo explicar los cambios sin confundir al estudiante.
 8. **Banco:** cómo proceder si no hay cinco preguntas distintas, con clave acreditada y aptas para un subeje.
@@ -286,7 +315,8 @@ Las reglas cuantitativas **no se consideran validadas** hasta probarlas con simu
 
 - [ ] Cerrar las dudas mínimas del diagnóstico y de cobertura.
 - [ ] Implementar **primero el planificador 4:3** y el estimador de dominio como funciones puras, independientes de UI.
-- [ ] Construir simuladores y tests para probar cuotas, intercalado controlado, calibración de 15 respuestas, prioridad de subejes y ausencia de sesgos.
+- [ ] Simular primero el reparto exacto M/R, rotación de los cuatro ejes M y selección/rotación dinámica de 1-4 ejes R y sus subejes, con umbrales provisionales.
+- [ ] Probar calibración de 15 respuestas, dominio ponderado, ausencia de sesgos y recalculación sin cambios retrospectivos.
 - [ ] Diseñar la pantalla de nodos a partir de la UI actual.
 - [ ] Integrar preguntas elegibles del banco *Default* y el historial unificado de Aprender/Playground/Ensayos, conservando primeros intentos.
 - [ ] Probar el recorrido con estudiantes y ajustar la distribución.
